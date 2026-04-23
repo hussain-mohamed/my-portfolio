@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Portfolio — Shopify Developer & Designer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ============================================================
+       CSS VARIABLES — عدّل الألوان والمعلومات الأساسية هنا
+       ============================================================ */
+    :root {
+      --bg:           #080A0F;          /* لون الخلفية الأساسي */
+      --surface:      #0D1017;          /* لون الكروت والسيكشن */
+      --border:       rgba(255,255,255,0.06);
+      --accent:       #00FFB2;          /* اللون الأساسي المميز */
+      --accent2:      #0066FF;          /* اللون الثاني */
+      --text:         #E8EBF0;          /* لون النص الأساسي */
+      --muted:        #5A6273;          /* لون النص الثانوي */
+      --font-display: 'Syne', sans-serif;
+      --font-mono:    'Space Mono', monospace;
+      --font-body:    'DM Sans', sans-serif;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ============================================================
+       CUSTOM CURSOR
+       ============================================================ */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+      opacity: 0.5;
+    }
+
+    /* ============================================================
+       NOISE OVERLAY
+       ============================================================ */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       GRID BACKGROUND
+       ============================================================ */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,178,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,178,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       NAVIGATION
+       ============================================================ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 24px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,10,15,0.8);
+      backdrop-filter: blur(20px);
+    }
+
+    /* ===== عدّل الـ logo هنا — الاسم المختصر بتاعك ===== */
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex; gap: 40px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* hamburger — hidden on desktop */
+    .nav-menu-btn {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 101;
+    }
+    .nav-menu-btn span {
+      display: block;
+      width: 22px; height: 1.5px;
+      background: var(--text);
+      transition: background 0.2s, transform 0.3s, opacity 0.3s;
+      transform-origin: center;
+    }
+    .nav-menu-btn.is-open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-menu-btn.is-open span:nth-child(2) { opacity: 0; }
+    .nav-menu-btn.is-open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* mobile drawer */
+    .nav-drawer {
+      position: fixed;
+      top: 0; right: -100%;
+      width: 72vw; max-width: 280px;
+      height: 100vh;
+      background: #0D1017;
+      border-left: 1px solid var(--border);
+      padding: 90px 32px 40px;
+      z-index: 99;
+      transition: right 0.35s cubic-bezier(0.16,1,0.3,1);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .nav-drawer.is-open { right: 0; }
+    .nav-drawer a {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-drawer a:hover { color: var(--accent); }
+
+    /* overlay */
+    .nav-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 98;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .nav-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+    /* ============================================================
+       SECTIONS — GENERAL
+       ============================================================ */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 120px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      max-width: 60px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.4;
+    }
+
+    /* ============================================================
+       HERO SECTION
+       ============================================================ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 140px;
+      padding-bottom: 80px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 40px; height: 1px;
+      background: var(--accent);
+    }
+
+    /* ===== الاسم الكبير — عدّله هنا ===== */
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(64px, 10vw, 140px);
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .hero-name span {
+      display: block;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .hero-name span:nth-child(2) { animation-delay: 0.08s; }
+
+    /* ===== المسمى الوظيفي — عدّله هنا ===== */
+    .hero-title {
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 1.8vw, 18px);
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 32px;
+      animation: fadeIn 1s 0.4s both;
+    }
+
+    /* ===== وصف قصير — عدّله هنا ===== */
+    .hero-bio {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.8;
+      margin-bottom: 56px;
+      animation: fadeIn 1s 0.5s both;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: fadeIn 1s 0.65s both;
+    }
+
+    /* ===== CTA الرئيسي ===== */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      background: var(--accent);
+      color: #000;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      cursor: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      transform: translate(-3px,-3px);
+      box-shadow: 6px 6px 0 var(--accent2);
+    }
+
+    /* ===== CTA الثاني ===== */
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      cursor: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* stats strip */
+    .hero-stats {
+      display: flex;
+      gap: 60px;
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      animation: fadeIn 1s 0.8s both;
+      flex-wrap: wrap;
+    }
+    .stat-item {}
+    /* ===== أرقام الإحصائيات — عدّلها هنا ===== */
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-number sup {
+      font-size: 20px;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* ============================================================
+       ABOUT / EXPERIENCE SECTION
+       ============================================================ */
+    #about {
+      border-top: 1px solid var(--border);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+      margin-top: 60px;
+    }
+
+    .about-heading {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+    .about-heading em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    /* ===== نص الـ about — عدّله هنا ===== */
+    .about-text {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 20px;
+    }
+
+    /* timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 24px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    /* ===== سنين الخبرة والمسميات — عدّلها هنا ===== */
+    .tl-year {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      padding-top: 4px;
+    }
+    .tl-role {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .tl-company {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ============================================================
+       SKILLS / TOOLS SECTION
+       ============================================================ */
+    #skills {
+      border-top: 1px solid var(--border);
+    }
+
+    .skills-heading {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 60px;
+      margin-top: 20px;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    /* ===== الأدوات — عدّل أسماءها هنا في الـ HTML ===== */
+    .tool-card {
+      padding: 20px 24px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s, transform 0.2s;
+      cursor: none;
+    }
+    .tool-card:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .tool-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .hero-name span:nth-child(2) {
+    color: var(--accent);
+}
+
+    /* ============================================================
+       PROJECTS SECTION
+       ============================================================ */
+    #projects {
+      border-top: 1px solid var(--border);
+    }
+
+    .projects-heading {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 60px;
+      margin-top: 20px;
+    }
+
+    .projects-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ===== المشاريع — عدّل كل كارت هنا ===== */
+    .project-card {
+      display: grid;
+      grid-template-columns: 60px 1fr auto;
+      align-items: center;
+      gap: 32px;
+      padding: 36px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      cursor: none;
+      transition: padding-left 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(0,255,178,0.04), transparent);
+      transition: width 0.4s;
+    }
+    .project-card:hover::before { width: 100%; }
+    .project-card:hover { padding-left: 16px; }
+    .project-card:first-child { border-top: 1px solid var(--border); }
+
+    .project-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .project-info {}
+    .project-name {
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      transition: color 0.2s;
+    }
+    .project-card:hover .project-name { color: var(--accent); }
+    .project-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .project-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(0,255,178,0.25);
+      padding: 4px 10px;
+    }
+
+    /* ============================================================
+       CONTACT / CTA SECTION
+       ============================================================ */
+    #contact {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 140px 60px;
+    }
+
+    .contact-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 32px;
+    }
+
+    /* ===== نص الـ CTA الرئيسي — عدّله هنا ===== */
+    .contact-heading {
+      font-family: var(--font-display);
+      font-size: clamp(48px, 8vw, 100px);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 40px;
+      color: var(--text);
+    }
+    .contact-heading em {
+      font-style: normal;
+      -webkit-text-stroke: 1px var(--accent);
+      color: transparent;
+    }
+
+    /* ===== إيميلك — عدّله هنا ===== */
+    .contact-email {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 48px;
+    }
+
+    .contact-cta-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 80px;
+    }
+
+    .contact-socials {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    /* ===== لينكات السوشيال — عدّلها هنا ===== */
+    .social-link {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .social-link::after {
+      content: '↗';
+      font-size: 10px;
+    }
+    .social-link:hover { color: var(--accent); }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 32px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 100%;
+    }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+    .footer-copy span { color: var(--accent); }
+
+    /* ============================================================
+       ANIMATIONS
+       ============================================================ */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       SCROLL REVEAL
+       ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================================
+       RESPONSIVE — TABLET (iPad)
+       ============================================================ */
+    @media (max-width: 1024px) {
+      nav     { padding: 20px 32px; }
+      section { padding: 100px 40px; }
+      #hero   { padding-top: 130px; padding-bottom: 60px; }
+      #contact { padding: 100px 40px; }
+      .about-grid { gap: 48px; }
+      .hero-stats { gap: 40px; }
+      .project-card { grid-template-columns: 50px 1fr; gap: 20px; }
+      .project-tags { display: none; }
+      .tools-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+      footer { padding: 28px 40px; }
+    }
+
+    /* ============================================================
+       RESPONSIVE — MOBILE
+       ============================================================ */
+    @media (max-width: 768px) {
+      /* restore normal cursor on touch */
+      body { cursor: auto; }
+      .cursor, .cursor-ring { display: none; }
+
+      /* nav */
+      nav { padding: 18px 20px; }
+      .nav-links { display: none; }
+      .nav-menu-btn { display: flex; }
+
+      /* fix name overflow */
+      .hero-name {
+        font-size: clamp(44px, 12vw, 72px);
+        overflow: hidden;
+        word-break: break-word;
+      }
+
+      /* sections */
+      section  { padding: 72px 20px; }
+      #hero    { padding-top: 100px; padding-bottom: 48px; min-height: auto; }
+      #contact { padding: 72px 20px; }
+
+      /* hero content */
+      .hero-eyebrow { font-size: 10px; margin-bottom: 20px; }
+      .hero-title   { font-size: 13px; margin-bottom: 20px; }
+      .hero-bio     { font-size: 14px; margin-bottom: 36px; }
+
+      .hero-cta { flex-direction: column; gap: 12px; }
+      .btn-primary, .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 15px 24px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+
+      /* stats — 2-column grid */
+      .hero-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        margin-top: 48px;
+      }
+      .stat-item {
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .stat-item:nth-child(odd)  { border-right: 1px solid var(--border); padding-right: 20px; }
+      .stat-item:nth-child(even) { padding-left: 20px; }
+      .stat-number { font-size: 34px; }
+
+      /* about */
+      .about-grid    { grid-template-columns: 1fr; gap: 40px; margin-top: 36px; }
+      .about-heading { font-size: clamp(28px, 8vw, 40px); }
+      .about-text    { font-size: 14px; }
+      .timeline-item { grid-template-columns: 80px 1fr; gap: 16px; padding: 20px 0; }
+      .tl-year       { font-size: 10px; }
+      .tl-role       { font-size: 14px; }
+
+      /* skills */
+      .skills-heading { font-size: clamp(28px, 8vw, 40px); margin-bottom: 32px; }
+      .tools-grid     { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .tool-card      { padding: 14px 16px; font-size: 11px; cursor: pointer; }
+      .tool-icon      { font-size: 15px; }
+
+      /* projects */
+      .projects-heading { font-size: clamp(28px, 8vw, 40px); margin-bottom: 32px; }
+      .project-card {
+        grid-template-columns: 36px 1fr;
+        gap: 16px;
+        padding: 24px 0;
+        cursor: pointer;
+      }
+      .project-card:hover { padding-left: 0; }
+      .project-tags { display: none; }
+      .project-name { font-size: clamp(16px, 5vw, 22px); }
+      .project-desc { font-size: 12px; }
+
+      /* contact */
+      .contact-heading { font-size: clamp(34px, 10vw, 56px); margin-bottom: 28px; }
+      .contact-email   { font-size: 12px; word-break: break-all; }
+      .contact-cta-group { flex-direction: column; align-items: stretch; }
+      .contact-cta-group .btn-primary,
+      .contact-cta-group .btn-secondary { width: 100%; justify-content: center; }
+      .contact-socials { gap: 20px; }
+
+      /* footer */
+      footer { padding: 24px 20px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    /* very small phones */
+    @media (max-width: 380px) {
+      .hero-name { font-size: clamp(38px, 13vw, 52px); }
+    }
+
+    /* ============================================================
+       SCANLINE ACCENT
+       ============================================================ */
+    .scanline {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      z-index: 200;
+      animation: scan 8s linear infinite;
+      opacity: 0.4;
+    }
+    @keyframes scan {
+      from { top: 0; }
+      to   { top: 100vh; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scanline effect -->
+  <div class="scanline"></div>
+
+  <!-- Custom cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ============================================================
+       NAVIGATION
+       ============================================================ -->
+  <nav>
+    <!-- ===== عدّل الاسم المختصر هنا ===== -->
+    <div class="nav-logo">HUSSEIN.USD</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <!-- hamburger button — mobile only -->
+    <button class="nav-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- mobile overlay -->
+  <div class="nav-overlay" id="navOverlay"></div>
+  <!-- mobile drawer -->
+  <div class="nav-drawer" id="navDrawer">
+    <a href="#about"    class="drawer-link">About</a>
+    <a href="#skills"   class="drawer-link">Skills</a>
+    <a href="#projects" class="drawer-link">Work</a>
+    <a href="#contact"  class="drawer-link">Contact</a>
+  </div>
+
+  <!-- ============================================================
+       HERO SECTION
+       ============================================================ -->
+  <section id="hero">
+    <div class="hero-eyebrow">
+      <!-- ===== الـ status بتاعك ===== -->
+      Available for work &nbsp;·&nbsp; Cairo, Egypt
+    </div>
+
+    <!-- ===== اسمك الكامل — لو اسمك طويل حطه في سطرين ===== -->
+    <h1 class="hero-name">
+      <span>Hussein</span>
+      <span>.usd</span> 
+    </h1>
+
+    <!-- ===== مسماك الوظيفي ===== -->
+    <p class="hero-title">Shopify Developer &amp; Designer</p>
+
+    <!-- ===== وصف قصير عنك ===== -->
+    <p class="hero-bio">
+      I build high-converting Shopify stores that merge clean code with sharp design.
+      From custom themes to full brand experiences — built for the future.
+    </p>
+
+    <div class="hero-cta">
+      <!-- ===== نص وlinkالـ CTA الرئيسي ===== -->
+      <a href="#projects" class="btn-primary">
+        View My Work <span>→</span>
+      </a>
+      <!-- ===== نص وlink الـ CTA الثاني ===== -->
+      <a href="#contact" class="btn-secondary">
+        Let's Talk
+      </a>
+    </div>
+
+    <!-- ===== الإحصائيات — عدّل الأرقام هنا ===== -->
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-number">2<sup>+</sup></div>
+        <div class="stat-label">Years Experience</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">8<sup>+</sup></div>
+        <div class="stat-label">Stores Launched</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">98<sup>%</sup></div>
+        <div class="stat-label">Client Satisfaction</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ABOUT / EXPERIENCE SECTION
+       ============================================================ -->
+  <section id="about">
+    <div class="section-label">About Me</div>
+
+    <div class="about-grid">
+      <div class="reveal">
+        <!-- ===== عنوان الـ about ===== -->
+        <h2 class="about-heading">
+          Crafting stores<br/>that <em>actually</em><br/>convert.
+        </h2>
+
+        <!-- ===== الفقرات التعريفية — عدّلها هنا ===== -->
+        <p class="about-text">
+          With over 5 years deep in the Shopify ecosystem, I specialize in building
+          custom themes and pixel-perfect storefronts that perform as good as they look.
+        </p>
+        <p class="about-text">
+          My work sits at the intersection of development precision and brand-forward design —
+          every store I ship is built to grow.
+        </p>
+      </div>
+
+      <div class="reveal" style="transition-delay:0.15s">
+        <!-- ===== Timeline الخبرة — عدّل كل item هنا ===== -->
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="tl-year">2022 — NOW</div>
+            <div>
+              <div class="tl-role">Senior Shopify Developer</div>
+              <!-- ===== اسم الشركة / فريلانس ===== -->
+              <div class="tl-company">Freelance / Agency</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-year">2020 — 2022</div>
+            <div>
+              <div class="tl-role">Shopify Theme Designer</div>
+              <!-- ===== اسم الشركة ===== -->
+              <div class="tl-company">E-Commerce Agency</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-year">2019 — 2020</div>
+            <div>
+              <div class="tl-role">Frontend Developer</div>
+              <!-- ===== اسم الشركة ===== -->
+              <div class="tl-company">Tech Startup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SKILLS / TOOLS SECTION
+       ============================================================ -->
+  <section id="skills">
+    <div class="section-label">Tools &amp; Skills</div>
+
+    <!-- ===== عنوان السكيلز ===== -->
+    <h2 class="skills-heading reveal">My Stack</h2>
+
+    <!-- ===== الأدوات — عدّل الأسماء والإيموجي هنا ===== -->
+    <div class="tools-grid reveal">
+      <div class="tool-card"><span class="tool-icon">🛍</span> Shopify</div>
+      <div class="tool-card"><span class="tool-icon">🎨</span> Liquid</div>
+      <div class="tool-card"><span class="tool-icon">⚡</span> JavaScript</div>
+      <div class="tool-card"><span class="tool-icon">🎯</span> CSS / SCSS</div>
+      <div class="tool-card"><span class="tool-icon">🖼</span> Figma</div>
+      <div class="tool-card"><span class="tool-icon">🔧</span> Theme Kit</div>
+      <div class="tool-card"><span class="tool-icon">📊</span> Analytics</div>
+      <div class="tool-card"><span class="tool-icon">💳</span> Payments</div>
+      <div class="tool-card"><span class="tool-icon">🌐</span> Headless</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PROJECTS SECTION
+       ============================================================ -->
+  <section id="projects">
+    <div class="section-label">Selected Work</div>
+
+    <!-- ===== عنوان المشاريع ===== -->
+    <h2 class="projects-heading reveal">Featured Projects</h2>
+
+    <div class="projects-list">
+
+      <!-- ===== مشروع ١ — عدّل الاسم والوصف والتاجز ===== -->
+      <a href="#" class="project-card reveal">
+        <div class="project-num">01</div>
+        <div class="project-info">
+          <div class="project-name">MVNT WEAR</div>
+          <div class="project-desc">
+            <!-- وصف المشروع -->
+            Custom Shopify theme with advanced filtering, cart animations, and 3× conversion rate improvement.
+          </div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Shopify</span>
+          <span class="tag">Liquid</span>
+          <span class="tag">Design</span>
+        </div>
+      </a>
+
+      <!-- ===== مشروع ٢ ===== -->
+      <a href="#" class="project-card reveal" style="transition-delay:0.1s">
+        <div class="project-num">02</div>
+        <div class="project-info">
+          <div class="project-name">Project Name Here</div>
+          <div class="project-desc">
+            Headless Shopify storefront with blazing fast load times and custom checkout experience.
+          </div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Hydrogen</span>
+          <span class="tag">React</span>
+          <span class="tag">API</span>
+        </div>
+      </a>
+
+      <!-- ===== مشروع ٣ ===== -->
+      <a href="#" class="project-card reveal" style="transition-delay:0.2s">
+        <div class="project-num">03</div>
+        <div class="project-info">
+          <div class="project-name">Project Name Here</div>
+          <div class="project-desc">
+            Full brand identity + Shopify store build for a luxury fashion brand. Zero to launch in 3 weeks.
+          </div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Branding</span>
+          <span class="tag">Figma</span>
+          <span class="tag">Shopify</span>
+        </div>
+      </a>
+
+      <!-- ===== مشروع ٤ — زود كمان لو حبيت ===== -->
+      <a href="#" class="project-card reveal" style="transition-delay:0.3s">
+        <div class="project-num">04</div>
+        <div class="project-info">
+          <div class="project-name">Project Name Here</div>
+          <div class="project-desc">
+            Subscription-based Shopify store with custom app integrations and automated email flows.
+          </div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Subscriptions</span>
+          <span class="tag">Klaviyo</span>
+          <span class="tag">Apps</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CONTACT / CTA SECTION
+       ============================================================ -->
+  <section id="contact">
+    <!-- ===== النص فوق الـ CTA ===== -->
+    <p class="contact-eyebrow">Ready to build something?</p>
+
+    <!-- ===== الـ heading الكبير — كلمة في خط المتغير واحد ===== -->
+    <h2 class="contact-heading reveal">
+      Let's build your<br/><em>next store.</em>
+    </h2>
+
+    <!-- ===== إيميلك ===== -->
+    <p class="contact-email">husseinmohamedd2007@email.com</p>
+
+    <div class="contact-cta-group reveal">
+      <!-- ===== CTA الرئيسي في الكونتاكت ===== -->
+      <a href="mailto:husseinmohamedd2007@email.com" class="btn-primary">
+        Start a Project →
+      </a>
+      <!-- ===== لو عندك كالندلي أو Upwork ===== -->
+      <a href="#" class="btn-secondary">
+        View CV
+      </a>
+    </div>
+
+    <!-- ===== السوشيال ميديا — عدّل اللينكات هنا ===== -->
+    <div class="contact-socials reveal">
+      <a href="https://www.instagram.com/hussein.usd?igsh=MTN6cGUyc2ljdG52cA%3D%3D&utm_source=qr" class="social-link">INSTAGRAM</a>
+      <a href="https://github.com/hussain-mohamed" class="social-link">GitHub</a>
+      <!-- ===== زود أو شيل حسب سوشيالك ===== -->
+      <a href="https://www.upwork.com/freelancers/~01e43e98b0e14f9265?mp_source=share" class="social-link">Upwork</a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer>
+    <!-- ===== عدّل اسمك وسنة النشر ===== -->
+    <p class="footer-copy">© 2025 <span>HUSSEIN.USD</span> — All rights reserved.</p>
+    <p class="footer-copy">Shopify Developer &amp; Designer</p>
+  </footer>
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================ -->
+  <script>
+    // --- Hamburger Menu ---
+    const menuBtn    = document.getElementById('menuBtn');
+    const navDrawer  = document.getElementById('navDrawer');
+    const navOverlay = document.getElementById('navOverlay');
+
+    function openMenu() {
+      navDrawer.classList.add('is-open');
+      navOverlay.classList.add('is-open');
+      menuBtn.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMenu() {
+      navDrawer.classList.remove('is-open');
+      navOverlay.classList.remove('is-open');
+      menuBtn.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+
+    menuBtn.addEventListener('click', () => {
+      navDrawer.classList.contains('is-open') ? closeMenu() : openMenu();
+    });
+    navOverlay.addEventListener('click', closeMenu);
+    document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click', closeMenu));
+
+    // --- Custom Cursor (desktop only) ---
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    if (window.matchMedia('(pointer: fine)').matches) {
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.transform = `translate(${mx - 5}px, ${my - 5}px)`;
+      });
+      (function animRing() {
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`;
+        requestAnimationFrame(animRing);
+      })();
+      document.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.8';
+        });
+        el.addEventListener('mouseleave', () => {
+          ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5';
+        });
+      });
+    }
+
+    // --- Scroll Reveal ---
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
